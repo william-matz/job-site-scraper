@@ -90,24 +90,38 @@ def job_page_scrape(link, verbose=False):
 # ---------------------------------------------------------------
 
 
-url_base = 'https://www.builtinla.com'
-url_home = 'https://builtinla.com/jobs'
+cities = ["boston","la","austin","nyc","chicago","colorado","seattle"]
+
+url_domain = 'https://www.builtin'
+url_extension = '.com'
+url_page_definition = '.com/jobs?page='
 
 perks=[]
 technologies=[]
 
-page = 0
-num_urls = 1
-while num_urls > 0: #Loop through pages on the job site, stop if there's no more
-    full_home_page = make_soup(url_home + str(page))
-    print("Page "+str(page))
-    page += 1
+for city in cities: #Loop through each city's site
+
+    #Construct the base url for the jobs in that city
+    url_base = url_domain + city + url_extension
+    page = 0
     
-    job_urls = scrape_job_urls(full_home_page, url_base)
-    num_urls = len(job_urls)
-    print("Num "+str(num_urls))
-    
-    for link in job_urls:
-        list = job_page_scrape(link)
-        perks.append(list[0])
-        technologies.append(list[1])
+    while True: #Loop through pages on the job site, break when there are no more pages
+
+        #Construct url for the page that lists all of the jobs
+        full_job_list_page = make_soup(url_domain + city + url_page_definition + str(page))
+        print("Page: "+str(page))
+        page += 1
+
+        #Pull all job urls from the [page] in that [city]
+        job_urls = scrape_job_urls(full_job_list_page, url_base)
+        
+        num_urls = len(job_urls)
+        print("Num URLs on page: "+str(num_urls))
+        if num_urls == 0:
+            break #Breaks when there are no more pages
+
+        #For each city-page combination, scrape data from each 
+        for link in job_urls:
+            list = job_page_scrape(link)
+            perks.append(list[0])
+            technologies.append(list[1])
